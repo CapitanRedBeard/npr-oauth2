@@ -14,29 +14,30 @@ const secrets = {
 }
 
 const authorizationUri = {
-  redirectRoot: encodeURI('http://localhost:3000/'),
+  redirectRoot: 'http://localhost:3000/',
   scope: 'localactivation',
-  state: '123123',
+  state: '123',
 }
+
+let linkingUri = null
 
 // Initial page redirecting to Github
 app.get('/auth', (req, res) => {
-  //https://api.npr.org/authorization/v2/authorize?client_id=nprone_trial_vwVllrzojK6v&redirect_uri=https%3A%2F%2Fwww.getpostman.com%2Foauth2%2Fcallback&response_type=code&scope=localactivation&state=123123
+  linkingUri = req.query.linkingUri;
   const requestUri = secrets.rootPath + '/' + secrets.authorizePath +
                       `?client_id=${secrets.id}` +
                       `&redirect_uri=${authorizationUri.redirectRoot}callback` +
                       '&response_type=code' +
                       `&scope=${authorizationUri.scope}` +
                       `&state=${authorizationUri.state}`
-
-  console.log(requestUri);
   res.redirect(requestUri);
 });
 
 // Callback service parsing the authorization token and asking for the access token
 app.get('/callback', (req, res) => {
   const code = req.query.code;
-  console.log("Code: ", code)
+  const state = req.query.state;
+
 
   if(code) {
     const form = new FormData();
@@ -51,34 +52,11 @@ app.get('/callback', (req, res) => {
       method: "POST",
       body: form
     }).then(res => res.json()).then(json => {
-      res.send(`Token is ${json.access_token}`)
+      res.redirect(`${linkingUri}token=${json.access_token}`)
+      linkingUri = null
     });
   }
-  // res.redirect(requestUri);
 
-  // request.post(requestUri);
-  // oauth2.authorizationCode.getToken(options, (error, result) => {
-  //   if (error) {
-  //     console.error('Access Token Error', error.message);
-  //     return res.json('Authentication failed');
-  //   }
-  //
-  //   console.log('The resulting token: ', result);
-  //   const token = oauth2.accessToken.create(result);
-  //
-  //   return res
-  //     .status(200)
-  //     .json(token);
-  // });
-});
-
-app.get('/success', (req, res) => {
-  res.send(`Token is ???`);
-  // res.send(`Token is ${req.query.token}`);
-});
-
-app.get('/', (req, res) => {
-  res.send('Hello<br><a href="/auth">Log in with NPR</a>');
 });
 
 app.listen(3000, () => {
