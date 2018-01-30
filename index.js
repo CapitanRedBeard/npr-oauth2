@@ -14,8 +14,8 @@ const secrets = {
 }
 
 const authorizationUri = {
-  redirectRoot: 'http://localhost:3000/',
-  scope: 'localactivation',
+  redirectRoot: 'https://protected-earth-11100.herokuapp.com/',
+  scope: 'listening.readonly',
   state: '123',
 }
 
